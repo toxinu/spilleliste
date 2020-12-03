@@ -1,0 +1,65 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+import sys
+
+from spilleliste import generator
+from docopt import docopt
+
+__doc__ = """Spilleliste, share your beautiful playlists.
+
+Usage:
+  spilleliste googlemusic --username <username> --password <password> [options]
+  spilleliste itunes [options]
+  spilleliste -h | --help
+  spilleliste -v | --version
+
+Options:
+  --no-spotify                  Disable Spotify URI
+  --no-youtube                  Disable Youtube URI
+  --no-background               Disable background images
+  --nb-background=<number>      Number of background [default: 5]
+  --template-url=<url>          Template url
+  -d, --debug                   Show debug
+  -h, --help                    Show help
+  -v, --version                 Show version
+
+Connectors:
+
+  Google Music     pip install gmusicapi
+  iTunes           pip install appscript
+
+"""
+
+
+def main(args):
+	if args.get('--debug'):
+		print(args)
+
+	if args.get('googlemusic'):
+		print('=> Retrieving data from Google Music...')
+		from spilleliste.connectors import googlemusic
+		
+		username = args.get('<username>')
+		password = args.get('<password>')
+		playlists = googlemusic.get_playlists(username, password)
+		generator.run(playlists, args)
+		sys.exit(0)
+
+	if args.get('itunes'):
+		print('=> Retrieving data from iTunes...')
+		from spilleliste.connectors import itunes
+
+		playlists = itunes.get_playlists()
+		generator.run(playlists, args)
+		sys.exit(0)
+
+	sys.exit(1)
+
+if __name__ == "__main__":
+	args = docopt(__doc__, version='0.1.1')
+	try:
+		main(args)
+	except KeyboardInterrupt:
+		print('Exiting...')
+		sys.exit(1)
